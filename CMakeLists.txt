@@ -127,17 +127,17 @@ target_compile_features(sipp PUBLIC cxx_auto_type cxx_range_for)
 add_executable(sipp_unittest EXCLUDE_FROM_ALL
   ${all_SRCS}
   "${PROJECT_SOURCE_DIR}/src/sipp_unittest.cpp"
-  "${PROJECT_SOURCE_DIR}/gtest/googletest/src/gtest-all.cc"
-  "${PROJECT_SOURCE_DIR}/gtest/googlemock/src/gmock-all.cc"
+#  "${PROJECT_SOURCE_DIR}/gtest/googletest/src/gtest-all.cc"
+#  "${PROJECT_SOURCE_DIR}/gtest/googlemock/src/gmock-all.cc"
 )
 target_compile_features(sipp_unittest PUBLIC cxx_auto_type cxx_range_for)
 target_compile_definitions(sipp_unittest PUBLIC "-DGTEST")
-target_include_directories(sipp_unittest SYSTEM PUBLIC
-  ${PROJECT_SOURCE_DIR}/gtest/googletest
-  ${PROJECT_SOURCE_DIR}/gtest/googlemock
-  ${PROJECT_SOURCE_DIR}/gtest/googletest/include
-  ${PROJECT_SOURCE_DIR}/gtest/googlemock/include
-)
+#target_include_directories(sipp_unittest SYSTEM PUBLIC
+#  ${PROJECT_SOURCE_DIR}/gtest/googletest
+#  ${PROJECT_SOURCE_DIR}/gtest/googlemock
+#  ${PROJECT_SOURCE_DIR}/gtest/googletest/include
+#  ${PROJECT_SOURCE_DIR}/gtest/googlemock/include
+#)
 
 # add version
 find_package(Git)
@@ -180,6 +180,10 @@ endif()
 if(CURSES_LIBRARY)
   target_link_libraries(sipp dl ${CURSES_LIBRARY} pthread)
   target_link_libraries(sipp_unittest dl ${CURSES_LIBRARY} pthread)
+  if(CURSES_LIBRARY_LIBRARY_DIRS)
+    target_link_directories(sipp PUBLIC ${CURSES_LIBRARY_LIBRARY_DIRS})
+    target_link_directories(sipp_unittest PUBLIC ${CURSES_LIBRARY_LIBRARY_DIRS})
+  endif(CURSES_LIBRARY_LIBRARY_DIRS)
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if(TINFO_LIBRARY)
       target_link_libraries(sipp ${TINFO_LIBRARY})
@@ -226,6 +230,10 @@ endif(USE_GSL AND GSL_LIBRARY)
 if(USE_SSL AND SSL_LIBRARIES)
   target_link_libraries(sipp ${SSL_LIBRARIES})
   target_link_libraries(sipp_unittest ${SSL_LIBRARIES})
+  if(SSL_LIBRARY_DIRS)
+    target_link_directories(sipp PUBLIC ${SSL_LIBRARY_DIRS})
+    target_link_directories(sipp_unittest PUBLIC ${SSL_LIBRARY_DIRS})
+  endif(SSL_LIBRARY_DIRS)
   if(SSL_INCLUDE_DIRS)
     target_include_directories(sipp SYSTEM PUBLIC ${SSL_INCLUDE_DIRS})
     target_include_directories(sipp_unittest SYSTEM PUBLIC ${SSL_INCLUDE_DIRS})

@@ -1842,7 +1842,7 @@ static int rtpstream_get_localport(int* rtpsocket, int* rtcpsocket)
 
         sockaddr_update_port(&address, port_number);
         if (::bind(*rtpsocket, (sockaddr*)&address,
-                   sizeof(address)) == 0) {
+				   socklen_from_addr(&address)) == 0) {
             break;
         }
     }

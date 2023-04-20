@@ -179,6 +179,37 @@ size_t get_ethertype_offset(int link, const uint8_t* pktdata)
     return offset;
 }
 
+struct rtphdr {
+/* Bit-fields are always assigned to the first available bit, possibly
+ * constrained by other factors, such as alignment. That means that they
+ * start at the low order bit for little-endian, and the high order bit
+ * for big-endian. This is the "right" way to do things. It is very
+ * unusual for a compiler to do this differently. */
+#if BYTE_ORDER == LITTLE_ENDIAN
+    uint8_t csicnt:4;
+    uint8_t extension:1;
+    uint8_t padding:1;
+    uint8_t version:2;
+
+    uint8_t payload_type:7;
+    uint8_t marker:1;
+#elif BYTE_ORDER == BIG_ENDIAN
+    uint8_t version:2;
+    uint8_t padding:1;
+    uint8_t extension:1;
+    uint8_t csicnt:4;
+
+    uint8_t marker:1;
+    uint8_t payload_type:7;
+#else
+#error "Please fix endian macros"
+#endif
+
+    uint16_t seqno;
+    uint32_t timestamp;
+    uint32_t ssrcid;
+};
+
 /* prepare a pcap file
  */
 int prepare_pkts(const char* file, pcap_pkts* pkts)
@@ -198,6 +229,14 @@ int prepare_pkts(const char* file, pcap_pkts* pkts)
     u_long pktlen;
     pcap_pkt* pkt_index;
     ether_type_hdr* ethhdr;
+
+    static int inited = 0;
+    if (!inited) {
+        srand((unsigned int) time(NULL));
+        inited = 1;
+    }
+
+    uint32_t rand_ssrc = rand();
 
     struct ip* iphdr;
     struct ip6_hdr* ip6hdr;
@@ -267,6 +306,9 @@ int prepare_pkts(const char* file, pcap_pkts* pkts)
             ERROR("Can't allocate memory for pcap pkt data");
         memcpy(pkt_index->data, udphdr, pktlen);
 
+        struct rtphdr* rtp = (struct rtphdr*)(pkt_index->data + 8);
+        rtp->ssrcid = rand_ssrc;
+
         udphdr->uh_sum = 0;
 
         /* compute a partial udp checksum */
@@ -286,37 +328,6 @@ int prepare_pkts(const char* file, pcap_pkts* pkts)
 
     return 0;
 }
-
-struct rtphdr {
-/* Bit-fields are always assigned to the first available bit, possibly
- * constrained by other factors, such as alignment. That means that they
- * start at the low order bit for little-endian, and the high order bit
- * for big-endian. This is the "right" way to do things. It is very
- * unusual for a compiler to do this differently. */
-#if BYTE_ORDER == LITTLE_ENDIAN
-    uint8_t csicnt:4;
-    uint8_t extension:1;
-    uint8_t padding:1;
-    uint8_t version:2;
-
-    uint8_t payload_type:7;
-    uint8_t marker:1;
-#elif BYTE_ORDER == BIG_ENDIAN
-    uint8_t version:2;
-    uint8_t padding:1;
-    uint8_t extension:1;
-    uint8_t csicnt:4;
-
-    uint8_t marker:1;
-    uint8_t payload_type:7;
-#else
-#error "Please fix endian macros"
-#endif
-
-    uint16_t seqno;
-    uint32_t timestamp;
-    uint32_t ssrcid;
-};
 
 struct rtpevent {
     uint8_t event_id;

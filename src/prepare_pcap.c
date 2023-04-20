@@ -232,7 +232,7 @@ int prepare_pkts(const char* file, pcap_pkts* pkts)
 
     static int inited = 0;
     if (!inited) {
-        srand((unsigned int) time(NULL));
+        srand((unsigned int) time(NULL) + clock());
         inited = 1;
     }
 

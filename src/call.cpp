@@ -6148,10 +6148,12 @@ call::T_ActionResult call::executeAction(const char* msg, message* curmsg)
                 struct sockaddr_in6* from = (struct sockaddr_in6*) &(play_args->from);
                 from->sin6_family = AF_INET6;
                 inet_pton(AF_INET6, media_ip, &(from->sin6_addr));
+                from->sin6_port= htons(rtpstream_callinfo.local_audioport);
             } else {
                 struct sockaddr_in* from = (struct sockaddr_in*) &(play_args->from);
                 from->sin_family = AF_INET;
                 from->sin_addr.s_addr = inet_addr(media_ip);
+                from->sin_port = htons(rtpstream_callinfo.local_audioport);
             }
             /* Create a thread to send RTP or UDPTL packets */
             pthread_attr_t attr;

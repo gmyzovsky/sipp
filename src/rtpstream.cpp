@@ -1802,14 +1802,15 @@ static int rtpstream_setsocketoptions(int sock)
 /* code checked */
 static int rtpstream_get_localport(int* rtpsocket, int* rtcpsocket)
 {
-    int port_number;
+	static int last_port = min_rtp_port;
+	int port_number;
     int tries;
     struct sockaddr_storage address;
     int max_tries = (min_rtp_port < (max_rtp_port - 2)) ? 100 : 1;
 
     debugprint("rtpstream_get_localport\n");
 
-    next_rtp_port = min_rtp_port;
+	next_rtp_port = last_port;
 
     /* initialise address family and IP address for media socket */
     memset(&address, 0, sizeof(address));
@@ -1843,6 +1844,7 @@ static int rtpstream_get_localport(int* rtpsocket, int* rtcpsocket)
         sockaddr_update_port(&address, port_number);
         if (::bind(*rtpsocket, (sockaddr*)&address,
 				   socklen_from_addr(&address)) == 0) {
+			last_port = next_rtp_port;
             break;
         }
     }
